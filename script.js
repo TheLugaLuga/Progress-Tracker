@@ -1,68 +1,54 @@
-const HF_TOKEN = "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"; 
-
 let foods = JSON.parse(localStorage.getItem('myFoods')) || [];
-
-// Afișăm datele la încărcarea paginii
 window.onload = updateUI;
 
 async function analyzeFood() {
     const query = document.getElementById('nlpInput').value;
     const loader = document.getElementById('loader');
-    
-    if (!query) return alert("Scrie ce ai mâncat (în engleză), ex: 2 boiled eggs");
+    if (!query) return alert("Scrie ce ai mâncat!");
 
     loader.style.display = 'block';
 
-    // Îi spunem AI-ului exact ce vrem: un format de date numit JSON
-    const prompt = `Return a JSON object for the nutritional value of "${query}". 
-    Format: {"name": "item name", "calories": 0, "protein": 0, "carbs": 0, "fat": 0}. 
-    Provide ONLY the JSON, no conversation, no markdown blocks.`;
-
     try {
-        const response = await fetch("https://api-inference.huggingface.co/models/Mistral-7B-Instruct-v0.2", {
-            headers: { 
-                Authorization: `Bearer ${HF_TOKEN}`,
-                "Content-Type": "application/json" 
-            },
-            method: "POST",
-            body: JSON.stringify({ 
-                inputs: "<s>[INST] " + prompt + " [/INST]",
-                parameters: { max_new_tokens: 150, return_full_text: false }
-            }),
+        // Chemăm propria noastră funcție de backend pe Vercel
+        const response = await fetch('/api/analyze', {
+            method: 'POST',
+            body: JSON.stringify({ query: query })
         });
 
         const result = await response.json();
         
-        // Extragem textul generat de AI
-        let aiResponseText = "";
-        if (Array.isArray(result) && result[0].generated_text) {
-            aiResponseText = result[0].generated_text;
-        } else {
-            throw new Error("AI-ul nu a răspuns corect.");
+        // Extragem textul generat de AI din răspunsul primit
+        let aiText = "";
+        if (Array.isArray(result)) {
+            aiText = result[0].generated_text;
+        } else if (result.error) {
+            throw new Error(result.error);
         }
 
-        // Curățăm textul pentru a găsi doar partea de JSON { ... }
-        const jsonMatch = aiResponseText.match(/\{.*\}/s);
-        if (!jsonMatch) throw new Error("Format invalid primit de la AI.");
+        // Extragem doar obiectul JSON { ... } din textul AI-ului
+        const match = aiText.match(/\{.*\}/s);
+        if (!match) throw new Error("AI-ul a trimis un format invalid.");
         
-        const foodData = JSON.parse(jsonMatch[0]);
+        const data = JSON.parse(match[0]);
 
-        // Adăugăm în listă
+        // Formula standard:
+        // $$Calorii = (P \times 4) + (C \times 4) + (G \times 9)$$
+
         foods.push({
-            name: foodData.name || query,
-            p: foodData.protein || 0,
-            c: foodData.carbs || 0,
-            g: foodData.fat || 0,
-            kcal: foodData.calories || 0
+            name: data.name || query,
+            p: data.protein || 0,
+            c: data.carbs || 0,
+            g: data.fat || 0,
+            kcal: data.calories || 0
         });
 
         saveData();
         updateUI();
         document.getElementById('nlpInput').value = "";
 
-    } catch (error) {
-        console.error("Eroare AI:", error);
-        alert("A apărut o eroare. Asigură-te că token-ul Hugging Face este corect și activ!");
+    } catch (e) {
+        console.error("Error:", e);
+        alert("Eroare: Nu am putut procesa datele. Verifică token-ul HF în Vercel!");
     } finally {
         loader.style.display = 'none';
     }
@@ -75,30 +61,27 @@ function updateUI() {
 
     foods.forEach((item, index) => {
         tP += item.p; tC += item.c; tG += item.g; tK += item.kcal;
-        
         list.innerHTML += `
             <tr>
                 <td>${item.name}</td>
                 <td>${item.p.toFixed(1)}g</td>
                 <td>${item.c.toFixed(1)}g</td>
                 <td>${item.g.toFixed(1)}g</td>
-                <td>${item.kcal.toFixed(0)} kcal</td>
-                <td><button class="delete-btn" onclick="deleteFood(${index})">X</button></td>
-            </tr>
-        `;
+                <td>**${item.kcal.toFixed(0)} kcal**</td>
+                <td><button onclick="deleteFood(${index})" style="background:#e74c3c; color:white; border:none; padding:5px; border-radius:4px; cursor:pointer;">X</button></td>
+            </tr>`;
     });
 
     if (foods.length > 0) {
         list.innerHTML += `
             <tr style="background: #f1f2f6; font-weight: bold;">
-                <td>TOTAL</td>
+                <td>TOTAL ZI</td>
                 <td>${tP.toFixed(1)}g</td>
                 <td>${tC.toFixed(1)}g</td>
                 <td>${tG.toFixed(1)}g</td>
                 <td>${tK.toFixed(0)} kcal</td>
                 <td></td>
-            </tr>
-        `;
+            </tr>`;
     }
 }
 
