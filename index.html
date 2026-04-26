@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Macro Tracker</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Tracker Nutrițional</h1>
+        <div class="input-section">
+            <input type="text" id="foodName" placeholder="Aliment">
+            <input type="number" id="protein" placeholder="P (g)">
+            <input type="number" id="carbs" placeholder="C (g)">
+            <input type="number" id="fat" placeholder="G (g)">
+            <button onclick="addFood()">Adaugă</button>
+        </div>
+        <table id="foodTable">
+            <thead>
+                <tr>
+                    <th>Aliment</th>
+                    <th>P</th><th>C</th><th>G</th><th>Kcal</th>
+                </tr>
+            </thead>
+            <tbody id="foodList"></tbody>
+        </table>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
