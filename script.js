@@ -9,30 +9,27 @@ async function analyzeFood() {
     loader.style.display = 'block';
 
     try {
-        // Chemăm propria noastră funcție de backend pe Vercel
         const response = await fetch('/api/analyze', {
             method: 'POST',
+            headers: { 'Content-Type': 'application/json' }, // FOARTE IMPORTANT
             body: JSON.stringify({ query: query })
         });
 
         const result = await response.json();
         
-        // Extragem textul generat de AI din răspunsul primit
-        let aiText = "";
-        if (Array.isArray(result)) {
-            aiText = result[0].generated_text;
-        } else if (result.error) {
+        if (result.error) {
+            // Dacă modelul se încarcă (503), Hugging Face trimite un mesaj specific
+            if (result.error.includes("loading")) {
+                return alert("AI-ul se trezește acum. Mai încearcă o dată în 20 de secunde!");
+            }
             throw new Error(result.error);
         }
 
-        // Extragem doar obiectul JSON { ... } din textul AI-ului
+        let aiText = Array.isArray(result) ? result[0].generated_text : "";
         const match = aiText.match(/\{.*\}/s);
-        if (!match) throw new Error("AI-ul a trimis un format invalid.");
+        if (!match) throw new Error("Format AI invalid.");
         
         const data = JSON.parse(match[0]);
-
-        // Formula standard:
-        // $$Calorii = (P \times 4) + (C \times 4) + (G \times 9)$$
 
         foods.push({
             name: data.name || query,
@@ -47,13 +44,12 @@ async function analyzeFood() {
         document.getElementById('nlpInput').value = "";
 
     } catch (e) {
-        console.error("Error:", e);
-        alert("Eroare: Nu am putut procesa datele. Verifică token-ul HF în Vercel!");
+        console.error("Error detaliat:", e);
+        alert("Eroare: " + e.message);
     } finally {
         loader.style.display = 'none';
     }
 }
-
 function updateUI() {
     const list = document.getElementById('foodList');
     list.innerHTML = "";
