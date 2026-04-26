@@ -1,5 +1,4 @@
-const API_KEY = 'AICI_PUI_CHEIA_TA_API_NINJAS'; 
-
+const API_KEY = 'C5VGry39079SJAT52Xk4DxNvy0Wj9KNcwhtmzK3B'
 let foods = JSON.parse(localStorage.getItem('myFoods')) || [];
 
 // Afișăm datele la încărcarea paginii
