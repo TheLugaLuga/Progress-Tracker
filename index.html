@@ -3,29 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Macro Tracker</title>
+    <title>Progress Tracker - Macro AI</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h1>Tracker Nutrițional</h1>
+        <h1>Macro Tracker AI</h1>
+        
         <div class="input-section">
-            <input type="text" id="foodName" placeholder="Aliment">
-            <input type="number" id="protein" placeholder="P (g)">
-            <input type="number" id="carbs" placeholder="C (g)">
-            <input type="number" id="fat" placeholder="G (g)">
-            <button onclick="addFood()">Adaugă</button>
+            <input type="text" id="nlpInput" placeholder="Ex: 2 eggs and 100g of bacon...">
+            <button onclick="analyzeFood()">Adaugă în Meniu</button>
         </div>
+
+        <div id="loader" style="display:none;">Analizez nutrienții... 🥗</div>
+
         <table id="foodTable">
             <thead>
                 <tr>
                     <th>Aliment</th>
-                    <th>P</th><th>C</th><th>G</th><th>Kcal</th>
+                    <th>P (g)</th>
+                    <th>C (g)</th>
+                    <th>G (g)</th>
+                    <th>Kcal</th>
+                    <th></th>
                 </tr>
             </thead>
-            <tbody id="foodList"></tbody>
+            <tbody id="foodList">
+                </tbody>
         </table>
     </div>
+
     <script src="script.js"></script>
 </body>
 </html>
